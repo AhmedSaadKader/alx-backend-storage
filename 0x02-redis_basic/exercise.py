@@ -33,7 +33,6 @@ def call_history(method: Callable) -> Callable:
         data = method(self, *args, **kwargs)
         self._redis.rpush(outputs, str(data))
         return data
-    
     return wrapper
 
 
@@ -54,32 +53,33 @@ def replay(method: Callable) -> None:
 
 
 class Cache():
-  """Cach class"""
+    """Cach class"""
 
-  def __init__(self):
-      self._redis = redis.Redis()
-      self._redis.flushdb()
+    def __init__(self):
+        self._redis = redis.Redis()
+        self._redis.flushdb()
 
-  @count_calls
-  @call_history
-  def store(self, data: Union[str, bytes, int, float]) -> str:
-      key = str(uuid4())
-      self._redis.set(key, data)
-      return key
+    @count_calls
+    @call_history
+    def store(self, data: Union[str, bytes, int, float]) -> str:
+        key = str(uuid4())
+        self._redis.set(key, data)
+        return key
 
-  def get(self, key: str, fn: Optional[Callable] = None) -> Union[str, bytes, int, float]:
-      """Get data from cache"""
-      if fn:
-          return fn(self._redis.get(key))
-      return self._redis.get(key)
+    def get(self, key: str,
+            fn: Optional[Callable] = None) -> Union[str, bytes, int, float]:
+        """Get data from cache"""
+        if fn:
+            return fn(self._redis.get(key))
+        return self._redis.get(key)
 
-  def get_str(self, key: str) -> str:
-      return self._redis.get(key).decode('utf-8')
+    def get_str(self, key: str) -> str:
+        return self._redis.get(key).decode('utf-8')
 
-  def get_int(self, key:str) -> int:
-      value = self._redis.get(key)
-      try:
-          value = int(value.decode('utf-8'))
-      except Exception:
-          value = 0
-      return value
+    def get_int(self, key: str) -> int:
+        value = self._redis.get(key)
+        try:
+            value = int(value.decode('utf-8'))
+        except Exception:
+            value = 0
+        return value
